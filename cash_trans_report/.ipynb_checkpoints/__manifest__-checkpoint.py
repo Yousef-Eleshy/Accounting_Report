@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "cash_trans_report",
+    'name': "Cash Transactions Report",
 
     'summary': """
-        Short (1 phrase/line) summary of the module's purpose, used as
-        subtitle on modules listing or apps.openerp.com""",
+        Cash Transactions Report""",
 
     'description': """
         Long description of module's purpose
@@ -20,13 +19,13 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base','account','account_reports'],
+    'depends': ['base', 'account_reports'],
 
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
-        'views/views.xml',
-        'views/templates.xml',
+        'views/account_move_line_inherit_view.xml',
+        'views/menu_items_view.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
