@@ -6,7 +6,7 @@
         Cash Transactions Report""",
 
     'description': """
-        Long description of module's purpose
+        Cash Transactions Report
     """,
 
     'author': "My Company",

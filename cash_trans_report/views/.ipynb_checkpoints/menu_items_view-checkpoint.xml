@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <menuitem id="cash_transactions_report_menu" name="Cash Transactions Report"
+                  parent="account.menu_finance_reports" action="cash_transactions_report_action"/>
+
+    </data>
+</odoo>
