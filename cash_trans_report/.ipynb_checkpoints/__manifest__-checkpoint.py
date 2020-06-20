@@ -19,13 +19,12 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'account_reports'],
+    'depends': ['base','account_reports'],
 
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
-        'views/account_move_line_inherit_view.xml',
-        'views/menu_items_view.xml',
+        'views/views.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
