@@ -16,7 +16,7 @@ class CashTransactionsReport(models.AbstractModel):
     filter_journals = True
 
     def _get_templates(self):
-        templates = super(ReportAccountingCustom, self)._get_templates()
+        templates = super(CashTransactionsReport, self)._get_templates()
         templates['line_template'] = 'account_reports.line_template_partner_ledger_report'
         return templates
 
@@ -36,7 +36,7 @@ class CashTransactionsReport(models.AbstractModel):
         return columns
 
     def _set_context(self, options):
-        ctx = super(ReportAccountingCustom, self)._set_context(options)
+        ctx = super(CashTransactionsReport, self)._set_context(options)
         if options['journals']:
             journals_list = []
             for rec in options['journals']:
@@ -281,7 +281,7 @@ class CashTransactionsReport(models.AbstractModel):
         return _('Accounting Custom Report')
 
     def _get_options(self, previous_options=None):
-        options = super(ReportAccountingCustom, self)._get_options(previous_options=previous_options)
+        options = super(CashTransactionsReport, self)._get_options(previous_options=previous_options)
         options['ir_filters'] = []
         previously_selected_id = False
         if previous_options and previous_options.get('ir_filters'):
