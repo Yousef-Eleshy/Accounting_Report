@@ -273,7 +273,7 @@ class CashTransactionsReport(models.AbstractModel):
 
     @api.model
     def _get_report_name(self):
-        return _('Accounting Custom Report')
+        return _('Cash Transactions Report')
 
     def _get_options(self, previous_options=None):
         options = super(CashTransactionsReport, self)._get_options(previous_options=previous_options)
