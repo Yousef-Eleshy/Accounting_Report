@@ -61,17 +61,18 @@ class CashTransactionsReport(models.AbstractModel):
             rates_table_entries.append((company.id, rate, user_company.currency_id.decimal_places))
         currency_table = ','.join('(%s, %s, %s)' % r for r in rates_table_entries)
         with_currency_table = 'WITH currency_table(company_id, rate, precision) AS (VALUES %s)' % currency_table
-        # Custom ir_filter (All,Cash In,Cash Out)
+        
+        # Custom ir_filter (All,Cash In,Cash Out)    
         init_domain = [('journal_id', 'in', journals)]
         if options.get('ir_filters'):
             for f in options.get('ir_filters'):
                 if f['selected']:
                     if f['name'] == 'Cash In':
-                        init_domain += [('debit', '>', 0)]
+                        init_domain += [('payment_id.payment_type', '=', 'inbound')]
                     elif f['name'] == 'Cash Out':
-                        init_domain += [('debit', '<', 0)]
+                        init_domain += [('payment_id.payment_type', '=', 'outbound')]
                     else:
-                        init_domain += ['|', ('debit', '>', 0), ('credit', '<', 0)]
+                        init_domain += ['|', ('payment_id.payment_type', '=', 'inbound'), ('payment_id.payment_type', '=', 'outbound')]
         # Sum query
         debit_field = 'debit_cash_basis' if options.get('cash_basis') else 'debit'
         credit_field = 'credit_cash_basis' if options.get('cash_basis') else 'credit'
