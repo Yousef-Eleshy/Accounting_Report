@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 class CashTransactionsReport(models.AbstractModel):
     _inherit = "account.report"
     _name = "account.custom.report"
-    _description = "Accounting Custom Report"
+    _description = "Cash Transactions Report"
 
     filter_date = {'date_from': '', 'date_to': '', 'filter': 'this_year'}
     filter_journals = True
