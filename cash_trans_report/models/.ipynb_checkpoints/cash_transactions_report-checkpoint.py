@@ -23,11 +23,9 @@ class CashTransactionsReport(models.AbstractModel):
     def _get_columns_name(self, options):
         columns = [
             {},
-            {'name': _('JRNL')},
+            {'name': _('JRNL'),'style':'text-align: left;'},
             {'name': _('Account')},
-            {'name': _('Ref')},
-            {'name': _('Due Date'), 'class': 'date'},
-            {'name': _('Matching Number')},
+            {'name': _('Ref'),'style':'text-align: left;'},
             {'name': _('Debit'), 'class': 'number'},
             {'name': _('Credit'), 'class': 'number'}]
 
@@ -115,7 +113,6 @@ class CashTransactionsReport(models.AbstractModel):
                        ('journal_id', 'in', journals)]
         base_domain.append(('date', '>=', date_from))
         base_domain.append(('move_id.state', '=', 'posted'))
-        base_domain.append(('full_reconcile_id', '=', False))
         for partner_id, result in results.items():
             domain = list(base_domain)  # copying the base domain
             domain.append(('partner_id', '=', partner_id))
@@ -191,7 +188,7 @@ class CashTransactionsReport(models.AbstractModel):
                     'trust': partner.trust,
                     'unfoldable': True,
                     'unfolded': 'partner_' + str(partner.id) in options.get('unfolded_lines') or unfold_all,
-                    'colspan': 6,
+                    'colspan': 4,
                 })
             user_company = self.env.user.company_id
             used_currency = user_company.currency_id
@@ -226,9 +223,7 @@ class CashTransactionsReport(models.AbstractModel):
                     #         'in_refund', 'in_invoice') else 'account.invoice.out'
                     if line.payment_id:
                         caret_type = 'account.payment'
-                    domain_columns = [line.journal_id.code, line.account_id.code, self._format_aml_name(line.name,line.move_id.ref,line.move_id.name),
-                                      line.date_maturity and format_date(self.env, line.date_maturity) or '',
-                                      line.full_reconcile_id.name or '',
+                    domain_columns = [line.journal_id.code, line.account_id.code,self._format_aml_name(line.name,line.move_id.ref,line.move_id.name),
                                       line_debit != 0 and self.format_value(line_debit) or '',
                                       line_credit != 0 and self.format_value(line_credit) or '']
                     if self.user_has_groups('base.group_multi_currency'):
@@ -262,7 +257,7 @@ class CashTransactionsReport(models.AbstractModel):
                 lines += domain_lines
 
         if not line_id:
-            total_columns = ['', '', '', '', '',
+            total_columns = ['', '', '',
                              self.format_value(total_debit), self.format_value(total_credit)]
             if self.user_has_groups('base.group_multi_currency'):
                 total_columns.append('')
