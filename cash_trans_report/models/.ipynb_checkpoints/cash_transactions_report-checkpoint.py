@@ -23,14 +23,15 @@ class CashTransactionsReport(models.AbstractModel):
     def _get_columns_name(self, options):
         columns = [
             {},
-            {'name': _('JRNL'),'style':'text-align: left;'},
-            {'name': _('Account')},
+            {},
             {'name': _('Ref'),'style':'text-align: left;'},
+            {'name': _('Initial Balance'), 'class': 'number'},
             {'name': _('Debit'), 'class': 'number'},
             {'name': _('Credit'), 'class': 'number'}]
 
         if self.user_has_groups('base.group_multi_currency'):
-            columns.append({'name': _('Amount Currency'), 'class': 'number'})
+            columns.append({})
+        columns.append({'name': _('Balance'), 'class': 'number'})
         return columns
 
     def _set_context(self, options):
@@ -175,10 +176,10 @@ class CashTransactionsReport(models.AbstractModel):
             total_debit += debit
             total_credit += credit
             total_balance += balance
-            columns = [self.format_value(debit), self.format_value(credit)]
+            columns = ['','',self.format_value(initial_balance),self.format_value(debit), self.format_value(credit)]
             if self.user_has_groups('base.group_multi_currency'):
                 columns.append('')
-            # columns.append(self.format_value(balance))
+            columns.append(self.format_value(balance))
             # don't add header for `load more`
             if offset == 0:
                 lines.append({
@@ -189,7 +190,7 @@ class CashTransactionsReport(models.AbstractModel):
                     'trust': partner.trust,
                     'unfoldable': True,
                     'unfolded': 'partner_' + str(partner.id) in options.get('unfolded_lines') or unfold_all,
-                    'colspan': 4,
+#                    'colspan': 6,
                 })
             user_company = self.env.user.company_id
             used_currency = user_company.currency_id
@@ -204,7 +205,7 @@ class CashTransactionsReport(models.AbstractModel):
                 remaining_lines = 0
                 if not context.get('print_mode'):
                     remaining_lines = grouped_partners[partner]['total_lines'] - offset - len(amls)
-
+                    
                 for line in amls:
                     if options.get('cash_basis'):
                         line_debit = line.debit_cash_basis
@@ -222,15 +223,33 @@ class CashTransactionsReport(models.AbstractModel):
                     # if line.invoice_id:
                     #     caret_type = 'account.invoice.in' if line.invoice_id.type in (
                     #         'in_refund', 'in_invoice') else 'account.invoice.out'
+                    domain_columns =[]
                     if line.payment_id:
                         caret_type = 'account.payment'
-                    domain_columns = [line.journal_id.code, line.account_id.code,self._format_aml_name(line.name,line.move_id.ref,line.move_id.name),
-                                      line_debit != 0 and self.format_value(line_debit) or '',
-                                      line_credit != 0 and self.format_value(line_credit) or '']
-                    if self.user_has_groups('base.group_multi_currency'):
-                        domain_columns.append(self.with_context(no_format=False).format_value(line.amount_currency,
-                                                                                              currency=line.currency_id) if line.amount_currency != 0 else '')
-                    # domain_columns.append(self.format_value(progress))
+                        #if line.payment_id.payment_type == 'inbound' and line.debit:
+                        if line.payment_id.payment_type == 'inbound':
+                            domain_columns = ['',self._format_aml_name(line.name,line.move_id.ref,line.move_id.name),
+                                      self.format_value(initial_balance),
+                                      line_debit != 0 and self.format_value(line_debit) or '',''
+                                     ]
+                            if self.user_has_groups('base.group_multi_currency'):
+                                domain_columns.append('')
+                            domain_columns.append(self.format_value(progress))
+                                
+                        elif line.payment_id.payment_type == 'outbound':
+                            domain_columns = ['',self._format_aml_name(line.name,line.move_id.ref,line.move_id.name),
+                                      self.format_value(initial_balance),'',
+                                      line_credit != 0 and self.format_value(line_credit) or ''
+                                     ]
+                            if self.user_has_groups('base.group_multi_currency'):
+                                domain_columns.append('')
+                            domain_columns.append(self.format_value(progress))
+                        else:
+                            domain_columns = ['','','','','']
+                            if self.user_has_groups('base.group_multi_currency'):
+                                domain_columns.append('')
+                            domain_columns.append('')
+                                    
                     columns = [{'name': v} for v in domain_columns]
                     columns[3].update({'class': 'date'})
                     domain_lines.append({
@@ -242,6 +261,10 @@ class CashTransactionsReport(models.AbstractModel):
                         'caret_options': caret_type,
                         'level': 4,
                     })
+                    #for line in domain_lines:
+                    #    for col in line['columns']:
+                    #        if col and col[:
+                    #            domain_lines.remove(line)
 
                 # load more
                 if remaining_lines > 0:
@@ -258,11 +281,11 @@ class CashTransactionsReport(models.AbstractModel):
                 lines += domain_lines
 
         if not line_id:
-            total_columns = ['', '', '',
+            total_columns = ['','', self.format_value(total_initial_balance),
                              self.format_value(total_debit), self.format_value(total_credit)]
             if self.user_has_groups('base.group_multi_currency'):
                 total_columns.append('')
-            # total_columns.append(self.format_value(total_balance))
+            total_columns.append(self.format_value(total_balance))
             lines.append({
                 'id': 'grouped_partners_total',
                 'name': _('Total'),
