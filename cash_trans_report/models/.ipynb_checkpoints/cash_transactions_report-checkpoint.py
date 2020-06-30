@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import models, api, _, fields
 from odoo.tools import float_is_zero
@@ -64,7 +63,7 @@ class CashTransactionsReport(models.AbstractModel):
         with_currency_table = 'WITH currency_table(company_id, rate, precision) AS (VALUES %s)' % currency_table
         
         # Custom ir_filter (All,Cash In,Cash Out)    
-        init_domain = [('journal_id', 'in', journals)]
+        init_domain = [('journal_id', 'in', journals),('account_id.user_type_id.type', '=', 'liquidity')]
         if options.get('ir_filters'):
             for f in options.get('ir_filters'):
                 if f['selected']:
@@ -115,6 +114,7 @@ class CashTransactionsReport(models.AbstractModel):
                        ('journal_id', 'in', journals)]
         base_domain.append(('date', '>=', date_from))
         base_domain.append(('move_id.state', '=', 'posted'))
+        base_domain.append(('account_id.user_type_id.type', '=', 'liquidity'))
         for partner_id, result in results.items():
             domain = list(base_domain)  # copying the base domain
             domain.append(('partner_id', '=', partner_id))
