@@ -32,7 +32,8 @@ class CashTransactionsReport(models.AbstractModel):
             columns.append({})
         columns.append({'name': _('Balance'), 'class': 'number'})
         return columns
-
+    
+    # Journals of Type = Cash
     def _set_context(self, options):
         ctx = super(CashTransactionsReport, self)._set_context(options)
         if options['journals']:
@@ -62,7 +63,7 @@ class CashTransactionsReport(models.AbstractModel):
         currency_table = ','.join('(%s, %s, %s)' % r for r in rates_table_entries)
         with_currency_table = 'WITH currency_table(company_id, rate, precision) AS (VALUES %s)' % currency_table
         
-        # Custom ir_filter (All,Cash In,Cash Out)    
+        # Custom ir_filter (All, Cash In (Payment Type = Inbound), Cash Out (Payment Type = Outbound)) & Cash Lines Only (Liquidity)
         init_domain = [('journal_id', 'in', journals),('account_id.user_type_id.type', '=', 'liquidity')]
         if options.get('ir_filters'):
             for f in options.get('ir_filters'):
@@ -71,8 +72,10 @@ class CashTransactionsReport(models.AbstractModel):
                         init_domain += [('payment_id.payment_type', '=', 'inbound')]
                     elif f['name'] == 'Cash Out':
                         init_domain += [('payment_id.payment_type', '=', 'outbound')]
+                    # All    
                     else:
                         init_domain += ['|', ('payment_id.payment_type', '=', 'inbound'), ('payment_id.payment_type', '=', 'outbound')]
+                        
         # Sum query
         debit_field = 'debit_cash_basis' if options.get('cash_basis') else 'debit'
         credit_field = 'credit_cash_basis' if options.get('cash_basis') else 'credit'
@@ -93,7 +96,7 @@ class CashTransactionsReport(models.AbstractModel):
         if line_id:
             query = query.replace('WHERE', 'WHERE \"account_move_line\".partner_id = %s AND ')
             params = [str(line_id)] + params
-            # if options.get("unreconciled"): part of requirement
+            
             query = query.replace("WHERE", 'WHERE \"account_move_line\".full_reconcile_id IS NULL AND ')
         self._cr.execute(with_currency_table + query, params)
         query_res = self._cr.dictfetchall()
@@ -114,6 +117,7 @@ class CashTransactionsReport(models.AbstractModel):
                        ('journal_id', 'in', journals)]
         base_domain.append(('date', '>=', date_from))
         base_domain.append(('move_id.state', '=', 'posted'))
+        # Showing Cash Line Only (Liquidity) 
         base_domain.append(('account_id.user_type_id.type', '=', 'liquidity'))
         for partner_id, result in results.items():
             domain = list(base_domain)  # copying the base domain
